@@ -1,95 +1,42 @@
-// ===============================
-// MOBILE NAVIGATION
-// ===============================
-
-const menuToggle = document.querySelector(".menu-toggle");
-const navLinks = document.querySelector(".nav-links");
-
-if (menuToggle && navLinks) {
-  menuToggle.addEventListener("click", () => {
-    navLinks.classList.toggle("active");
-  });
-
-  navLinks.querySelectorAll("a").forEach((link) => {
-    link.addEventListener("click", () => {
-      navLinks.classList.remove("active");
-    });
-  });
-}
-
-// ===============================
-// FOOTER YEAR
-// ===============================
-
-const yearElement = document.getElementById("year");
-
-if (yearElement) {
-  yearElement.textContent = new Date().getFullYear();
-}
-
-// ===============================
-// EMAILJS INITIALIZATION
-// ===============================
-
-emailjs.init({
-  publicKey: "CNSFh8okFlpb9vXrQ",
-});
-
-// ===============================
-// CONTACT FORM
-// ===============================
-
 const contactForm = document.getElementById("contact-form");
+const formStatus = document.getElementById("form-status");
 
-if (contactForm) {
-  contactForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
+contactForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
 
-    const submitButton = contactForm.querySelector('button[type="submit"]');
+  const data = {
+    name: document.getElementById("name").value,
+    email: document.getElementById("email").value,
+    subject: document.getElementById("subject").value,
+    message: document.getElementById("message").value,
+  };
 
-    const name = document.getElementById("name")?.value.trim();
-    const email = document.getElementById("email")?.value.trim();
-    const subject = document.getElementById("subject")?.value.trim();
-    const message = document.getElementById("message")?.value.trim();
+  try {
+    // Your existing EmailJS
+    const serviceID = "service_v4b9bx";
+    const templateID = "template_x0sinch";
 
-    // Basic validation
-    if (!name || !email || !subject || !message) {
-      alert("Please fill in all fields.");
-      return;
-    }
+    await emailjs.sendForm(serviceID, templateID, contactForm);
 
-    // Basic email validation
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    // Backend connection added
+    const backendResponse = await fetch("http://localhost:5000/api/contact", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
 
-    if (!emailPattern.test(email)) {
-      alert("Please enter a valid email address.");
-      return;
-    }
+    const backendResult = await backendResponse.json();
 
-    // Disable button while sending
-    if (submitButton) {
-      submitButton.disabled = true;
-      submitButton.textContent = "Sending...";
-    }
+    console.log("Backend:", backendResult);
 
-    try {
-      const serviceID = "service_v4b9bx";
-      const templateID = "template_x0sinch";
+    formStatus.textContent = "Message sent successfully!";
 
-      await emailjs.sendForm(serviceID, templateID, contactForm);
+    contactForm.reset();
+  } catch (error) {
+    console.error("Error:", error);
 
-      alert("Message sent successfully! 🚀");
-
-      contactForm.reset();
-    } catch (error) {
-      console.error("EmailJS Error:", error);
-
-      alert("Sorry, your message could not be sent. Please try again.");
-    } finally {
-      if (submitButton) {
-        submitButton.disabled = false;
-        submitButton.textContent = "Send Message";
-      }
-    }
-  });
-}
+    formStatus.textContent = "Failed to send message. Please try again.";
+  }
+});
