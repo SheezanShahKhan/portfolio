@@ -86,7 +86,7 @@ if (contactForm) {
       // 2. SEND TO YOUR BACKEND
       // ==================================
 
-      const backendResponse = await fetch("http://localhost:5000/api/contact", {
+      const backendResponse = await fetch("http://localhost:5500/api/contact", {
         method: "POST",
 
         headers: {
